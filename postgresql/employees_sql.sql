@@ -46,15 +46,16 @@ SELECT COUNT(*) FROM public.employees
 WHERE EXTRACT(MONTH FROM birth_date) = 11;
 
 --joins
-SELECT * FROM public.employees
-CROSS JOIN public.departments;
+SELECT e.first_name, dp.dept_name FROM employees AS e
+INNER JOIN dept_emp AS de ON de.emp_no = e.emp_no
+INNER JOIN departments AS dp ON dp.dept_no = de.dept_no
 
-SELECT * FROM public.employees 
-CROSS JOIN public.departments 
-WHERE dept_name = 'Development';
+SELECT * FROM employees AS e
+INNER JOIN dept_emp AS de ON de.emp_no = e.emp_no
+INNER JOIN departments AS dp ON dp.dept_no = de.dept_no
+WHERE dp.dept_name = 'Development'
 
-
-SELECT first_name, last_name, salary FROM public.employees AS e 
+SELECT e.emp_no, e.first_name, e.last_name, s.salary FROM public.employees AS e 
 INNER JOIN public.salaries AS s 
 ON e.emp_no = s.emp_no;
 
@@ -97,9 +98,9 @@ WHERE EXTRACT(YEAR FROM e.hire_date) > 1991
 GROUP BY e.emp_no;
 
 -- new task
-SELECT EXTRACT(YEAR FROM e.hire_date) AS each_year, COUNT(e.emp_no) FROM employees AS e 
-INNER JOIN titles AS t ON e.emp_no = t.emp_no
-GROUP BY EXTRACT(YEAR FROM e.hire_date)
+SELECT EXTRACT(YEAR FROM hire_date) AS each_year, COUNT(*) FROM employees AS e 
+GROUP BY EXTRACT(YEAR FROM hire_date)
+ORDER BY each_year 
 
 SELECT e.emp_no, e.first_name, d.dept_name FROM public.employees AS e 
 INNER JOIN public.dept_emp AS de ON e.emp_no = de.emp_no
@@ -108,18 +109,16 @@ WHERE d.dept_name = 'Sales'
 GROUP BY e.emp_no, d.dept_name;
 
 -- new task
-SELECT EXTRACT(MONTH FROM e.hire_date) AS each_year, COUNT(e.emp_no) FROM employees AS e 
-INNER JOIN titles AS t ON e.emp_no = t.emp_no
-GROUP BY EXTRACT(MONTH FROM e.hire_date)
-ORDER BY each_year ASC 
+SELECT EXTRACT(MONTH FROM hire_date) AS each_month, COUNT(*) FROM employees AS e 
+GROUP BY EXTRACT(MONTH FROM hire_date)
+ORDER BY each_month 
 
 --Having
-SELECT e.emp_no, t.title FROM public.employees AS e 
+SELECT e.emp_no FROM public.employees AS e 
 INNER JOIN public.titles AS t ON e.emp_no = t.emp_no
 WHERE EXTRACT(YEAR FROM e.hire_date) > 1991
-GROUP BY e.emp_no, t.title
-HAVING COUNT(t.title) > 2;
-
+GROUP BY e.emp_no
+HAVING COUNT(DISTINCT t.title) >= 2;
 
 SELECT e.emp_no, d.dept_name FROM public.employees AS e 
 INNER JOIN public.dept_emp AS de ON e.emp_no = de.emp_no
@@ -128,7 +127,6 @@ INNER JOIN public.salaries AS s ON e.emp_no = s.emp_no
 WHERE d.dept_name = 'Development'
 GROUP BY e.emp_no, d.dept_name
 HAVING COUNT(s.salary) > 15;
-
 
 SELECT e.emp_no FROM public.employees AS e 
 INNER JOIN public.dept_emp AS de ON e.emp_no = de.emp_no
@@ -147,7 +145,6 @@ GROUP BY
         ()
     );
 
-
 SELECT AVG(s.salary) AS avg_salary, d.dept_name FROM public.employees AS e 
 INNER JOIN public.dept_emp AS de ON e.emp_no = de.emp_no
 INNER JOIN public.departments AS d ON de.dept_no = d.dept_no
@@ -157,7 +154,6 @@ GROUP BY
         (d.dept_name),
         ()
     );
-    
 
 --Lesson 5 and 6
 --Window functions
