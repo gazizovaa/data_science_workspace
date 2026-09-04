@@ -158,10 +158,13 @@ GROUP BY
 --Lesson 5 and 6
 --Window functions
 --Find the average income for each position
-SELECT DISTINCT(t.title), AVG(s.salary) OVER(PARTITION BY t.title) AS avg_income FROM public.employees AS e 
-INNER JOIN public.salaries AS s ON e.emp_no = s.emp_no 
-INNER JOIN public.titles AS t ON s.emp_no = t.emp_no;
+-- SELECT DISTINCT(t.title), AVG(s.salary) OVER(PARTITION BY t.title) AS avg_income FROM public.employees as e 
+-- INNER JOIN public.salaries AS s on e.emp_no = s.emp_no 
+-- INNER JOIN public.titles AS t ON s.emp_no = t.emp_no;
 
+SELECT DISTINCT(titles.title), AVG(salaries.salary) OVER(PARTITION BY titles.title) AS avg_income FROM employees 
+INNER JOIN titles USING(emp_no)
+INNER JOIN salaries USING(emp_no)
 
 --row_number()
 --Find the first three hired employees for each department
@@ -171,7 +174,7 @@ FROM (
     INNER JOIN public.dept_emp AS de ON e.emp_no = de.emp_no
     INNER JOIN public.departments AS d ON de.dept_no = d.dept_no
 ) AS ranked_employees
-WHERE row_number <= 3;
+WHERE row_number <= 3
 
 SELECT *
 FROM (
@@ -183,13 +186,20 @@ WHERE ordered <= 3;
 
 
 --Find the 3 highest salaries for each position
+-- SELECT salary, title, highest_salaries
+-- FROM (
+--     SELECT s.emp_no, s.salary, t.title, ROW_NUMBER() OVER(PARTITION BY t.title ORDER BY s.salary DESC) AS highest_salaries FROM public.salaries AS s 
+--     INNER JOIN public.titles AS t ON s.emp_no = t.emp_no
+-- ) AS ranked_employees
+-- WHERE highest_salaries <= 3;
+
 SELECT salary, title, highest_salaries
 FROM (
-    SELECT s.emp_no, s.salary, t.title, ROW_NUMBER() OVER(PARTITION BY t.title ORDER BY s.salary DESC) AS highest_salaries FROM public.salaries    AS s 
-    INNER JOIN public.titles AS t ON s.emp_no = t.emp_no
-) AS ranked_employees
-WHERE highest_salaries <= 3;
-
+    SELECT salaries.emp_no, salaries.salary, titles.title, ROW_NUMBER() OVER(PARTITION BY titles.title ORDER BY salaries.salary DESC) AS highest_salaries
+    FROM salaries 
+    INNER JOIN titles USING(emp_no)
+) AS ranked_salaries
+WHERE highest_salaries <= 3
 
 SELECT *
 FROM (
@@ -261,25 +271,27 @@ GROUP BY emp_no, dept_name
 HAVING COUNT(salary_changes) > 15;
 
 --For each employee's title record, show the current title and the next title. If there is no next title, show NULL.
-SELECT e.emp_no, t.title AS current_title, LEAD(t.title) OVER(PARTITION BY e.emp_no ORDER BY t.from_date) FROM public.employees AS e 
+SELECT e.emp_no, t.title AS current_title, LEAD(t.title) OVER(PARTITION BY e.emp_no ORDER BY t.from_date) AS next_title FROM public.employees AS e 
 INNER JOIN public.titles AS t ON e.emp_no = t.emp_no;
 
 -- For each employee's department record, show the current department, the previous department, the next department, and the last recorded department for that employee
-SELECT d.dept_name AS current_dept,
+SELECT e.emp_no,
+       d.dept_name AS current_dept,
        LAG(d.dept_name) OVER(PARTITION BY e.emp_no ORDER BY de.from_date) AS prev_dept,
        LEAD(d.dept_name) OVER(PARTITION BY e.emp_no ORDER BY de.from_date) AS next_dept,
-       LAST_VALUE(d.dept_name) OVER(PARTITION BY e.emp_no ORDER BY de.from_date) AS last_recorded_dept
+       LAST_VALUE(d.dept_name) OVER(PARTITION BY e.emp_no ORDER BY de.from_date 
+            ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS last_recorded_dept
 FROM public.employees AS e 
 INNER JOIN public.dept_emp AS de ON e.emp_no = de.emp_no
-INNER JOIN public.departments AS d ON de.dept_no = de.dept_no;
+INNER JOIN public.departments AS d ON de.dept_no = d.dept_no;
 
 --For each employee, calculate the number of days between their hire date and the hire date of the previous employee based on the emp_no order. If there is no previous employee, show NULL
 SELECT *, (hire_date - LAG(hire_date) OVER(ORDER BY emp_no)) AS day_counts FROM public.employees;
 
 --Assign a dense rank to each employee's title based on the from_date within each employee. Additionally, mark the first title each employee received
 SELECT e.emp_no, t.title, t.from_date,  
-       DENSE_RANK() OVER(PARTITION BY t.from_date ORDER BY e.emp_no) AS employee_title,
-       FIRST_VALUE(t.title) OVER(PARTITION BY t.from_date ORDER BY e.emp_no) AS first_title
+       DENSE_RANK() OVER(PARTITION BY e.emp_no ORDER BY t.from_date) AS employee_title_rank,
+       FIRST_VALUE(t.title) OVER(PARTITION BY e.emp_no ORDER BY t.from_date) AS first_title
 FROM public.employees AS e 
 INNER JOIN public.titles AS t ON e.emp_no = t.emp_no;
 

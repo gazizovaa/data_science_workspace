@@ -44,19 +44,22 @@ WHERE EXTRACT(YEAR FROM orderdate) = 2024 AND (EXTRACT(MONTH FROM orderdate) = 1
 
 --joins
 SELECT * FROM public.orders AS o 
-LEFT JOIN public.customers AS c 
+INNER JOIN public.customers AS c 
 ON o.customerid = c.customerid
 WHERE c.state IN('OH', 'NY', 'OR'); 
 
-
-SELECT * FROM public.products AS p 
-RIGHT JOIN public.inventory AS i 
+SELECT p.prod_id, i.quan_in_stock FROM public.products AS p 
+INNER JOIN public.inventory AS i 
 ON p.prod_id = i.prod_id; 
 
 --row_number()
 --Find the average price for each category and then subtract the item’s price from its category’s price 
-SELECT *, AVG(price), price - OVER(PARTITION BY category) AS avg_price AS price_difference
+SELECT 
+    category, 
+    AVG(price) OVER(PARTITION BY category) AS avg_price, 
+    (AVG(price) OVER(PARTITION BY category) - price) AS price_difference
 FROM public.products;
+
 
 --Find the most expensive product for each category
 SELECT category, price, most_expensive_product 
@@ -89,3 +92,28 @@ FROM public.products;
 SELECT * FROM public.orders AS o 
 INNER JOIN public.customers AS c ON o.customerid = c.customerid
 WHERE c.state IN('OH', 'NY', 'OR');
+
+
+-- Calculate the total number of customers in each state
+SELECT state, COUNT(*) FROM customers
+GROUP BY state;
+
+--3) How many customers mail have 'H' in 3rd place?
+SELECT * FROM customers
+WHERE email LIKE '__H%';
+
+--5) What is the total amount of transactions of first 100 customers in orders table? 
+SELECT SUM(totalamount) AS total_transactions
+FROM ( SELECT customerid, totalamount
+    FROM orders
+    ORDER BY customerid
+    LIMIT 100
+) AS first_100_customers;
+
+
+--6) Show product_id, category, product's name, it's price and average price for each product based on their category
+SELECT prod_id, category, title AS prod_name, price, AVG(price) OVER (PARTITION BY category) AS average_price_by_category
+FROM products;
+
+
+
