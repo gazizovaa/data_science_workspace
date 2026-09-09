@@ -371,49 +371,6 @@ SELECT concat(first_name, ' ', last_name) AS full_name, salary FROM
 INNER JOIN salaries AS s ON s.emp_no = e.emp_no) 
 WHERE gulnara = 1;
 
-
---2) Find the average salary of each departments managers
-SELECT d.dept_name, AVG(s.salary) FROM salaries AS s 
-INNER JOIN dept_manager AS dm ON s.emp_no = dm.emp_no
-INNER JOIN departments AS d ON dm.dept_no = d.dept_no
-GROUP BY d.dept_name;
-
---7) Who are the highest-paid employees in each department?
-SELECT dept_no, dept_name, first_name, last_name, salary
-FROM (
-    SELECT d.dept_no, d.dept_name, e.first_name, e.last_name, s.salary, 
-        RANK() OVER (PARTITION BY d.dept_no ORDER BY s.salary DESC) AS rank
-    FROM employees AS e
-    INNER JOIN dept_emp AS de ON e.emp_no = de.emp_no
-    INNER JOIN departments AS d ON d.dept_no = de.dept_no
-    INNER JOIN salaries AS s ON e.emp_no = s.emp_no
-) ranked_employees
-WHERE rank = 1;
-
-
---8) Who are the top 10 longest-serving employees?
-SELECT emp_no, first_name, hire_date, top_employees_rank
-FROM (
-    SELECT emp_no, first_name, hire_date, RANK() OVER (ORDER BY AGE(CURRENT_DATE, hire_date) ASC) AS top_employees_rank
-    FROM employees
-) ranked_employees
-WHERE top_employees_rank <= 10;
-
-
---9) What is the average salary for each job title and each department?
-SELECT t.title, d.dept_name, AVG(s.salary) AS avg_salary
-FROM employees AS e
-INNER JOIN titles AS t ON e.emp_no = t.emp_no
-INNER JOIN salaries AS s ON e.emp_no = s.emp_no
-INNER JOIN dept_emp AS de ON e.emp_no = de.emp_no
-INNER JOIN departments AS d ON de.dept_no = d.dept_no
-GROUP BY GROUPING SETS(
-    (t.title),
-    (d.dept_name),
-    ()
-);
-
-
 -- Interview Questions
 -- Find the first salary of each employees 
 WITH subquery AS(
