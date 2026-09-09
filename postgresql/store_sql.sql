@@ -98,22 +98,4 @@ WHERE c.state IN('OH', 'NY', 'OR');
 SELECT state, COUNT(*) FROM customers
 GROUP BY state;
 
---3) How many customers mail have 'H' in 3rd place?
-SELECT * FROM customers
-WHERE email LIKE '__H%';
-
---5) What is the total amount of transactions of first 100 customers in orders table? 
-SELECT SUM(totalamount) AS total_transactions
-FROM ( SELECT customerid, totalamount
-    FROM orders
-    ORDER BY customerid
-    LIMIT 100
-) AS first_100_customers;
-
-
---6) Show product_id, category, product's name, it's price and average price for each product based on their category
-SELECT prod_id, category, title AS prod_name, price, AVG(price) OVER (PARTITION BY category) AS average_price_by_category
-FROM products;
-
-
 
