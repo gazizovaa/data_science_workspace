@@ -331,12 +331,19 @@ SELECT * FROM "bigbucks";
 --Assign a sequential number to each employee based on their hire date within each gender. Additionally, mark whether the employee is in the --top half or bottom half of their gender group based on their hire date
 
 --COUNT(*) / 2 calculates the midpoint based on gender
-SELECT *, RANK() OVER(PARTITION BY gender ORDER BY hire_date) AS employee_rank, 
-        CASE 
-            WHEN RANK() OVER(PARTITION BY gender ORDER BY hire_date) < (SELECT COUNT(*) / 2 FROM public.employees) THEN 'top half'
-            ELSE 'bottom half'
-        END AS half_type
+SELECT *,  ROW_NUMBER() OVER(PARTITION BY gender ORDER BY hire_date) AS employee_rank,
+    CASE 
+        WHEN ROW_NUMBER() OVER(PARTITION BY gender ORDER BY hire_date) <= (COUNT(*) OVER(PARTITION BY gender) / 2.0) THEN 'top half'
+        ELSE 'bottom half'
+    END AS half_type
 FROM public.employees;
+
+-- SELECT *, RANK() OVER(PARTITION BY gender ORDER BY hire_date) AS employee_rank, 
+--         CASE 
+--             WHEN RANK() OVER(PARTITION BY gender ORDER BY hire_date) < (SELECT COUNT(*) / 2 FROM public.employees) THEN 'top half'
+--             ELSE 'bottom half'
+--         END AS half_type
+-- FROM public.employees;
 
 --views
 CREATE VIEW avg_emp AS 
