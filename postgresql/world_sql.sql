@@ -37,7 +37,7 @@ GROUP BY continent, population;
 SELECT 
 SUM(CASE
     WHEN population > 50000000 THEN surfacearea
-    ELSE surfacearea
-    END)
+    ELSE 0
+    END) AS total_area
 FROM public.country;
 
