@@ -110,7 +110,8 @@ LIMIT 1
 SELECT c.category_name, EXTRACT(MONTH FROM s.search_date) AS MONTH, COUNT(s.search_id) AS total_searches FROM searches_3 AS s 
 INNER JOIN categories AS c ON s.category_id = c.category_id
 WHERE EXTRACT(YEAR FROM s.search_date) = 2024
-GROUP BY c.category_name, EXTRACT(MONTH FROM s.search_date);
+GROUP BY c.category_name, EXTRACT(MONTH FROM s.search_date)
+ORDER BY total_searches ASC;
 
 --Question 4
 -- CREATE TABLE ads (
