@@ -156,6 +156,8 @@ WHERE (STATUS = 'active') AND (impressions > 500000) AND (EXTRACT(YEAR FROM last
 -- (4749, '2024-07-05', 1604, 2002, 75, 180.00);
 
 -- Google Ad Campaign Performance
-SELECT campaign_id, ad_group_id, (SUM(COST) / SUM(clicks)) AS avg_CPC
+SELECT campaign_id, ad_group_id, 
+    ROUND(SUM(COST) / SUM(clicks), 2) AS avg_CPC
 FROM ad_clicks
-GROUP BY campaign_id, ad_group_id;
+GROUP BY campaign_id, ad_group_id
+ORDER BY campaign_id, ad_group_id ASC;
