@@ -68,11 +68,12 @@ HAVING count(*) > 1;
 -- 
 
 --Google Maps Flagged UGC
-SELECT DISTINCT p.place_category FROM place_info AS p 
-INNER JOIN maps_ugc_review AS m ON p.place_id = m.place_id
-WHERE m.content_tag = 'Off-topic'
-ORDER BY p.place_category DESC;
-
+SELECT DISTINCT place_category FROM place_info
+INNER JOIN maps_ugc_review USING(place_id)
+WHERE content_tag = 'Off-topic'
+GROUP BY place_category 
+ORDER BY place_category DESC 
+LIMIT 1
 
 --Question 3
 -- CREATE TABLE categories (
